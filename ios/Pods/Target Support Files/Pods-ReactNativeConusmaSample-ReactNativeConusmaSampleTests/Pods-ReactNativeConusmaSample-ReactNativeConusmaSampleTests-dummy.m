@@ -1,5 +1,0 @@
-#import <Foundation/Foundation.h>
-@interface PodsDummy_Pods_ReactNativeConusmaSample_ReactNativeConusmaSampleTests : NSObject
-@end
-@implementation PodsDummy_Pods_ReactNativeConusmaSample_ReactNativeConusmaSampleTests
-@end
