@@ -21,7 +21,7 @@ import {
 } from 'react-native-webrtc';
 
  const App = () => {
-   var conusma = new Conusma();
+   var conusma = new Conusma("test",{apiUrl:"test"});
 
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
