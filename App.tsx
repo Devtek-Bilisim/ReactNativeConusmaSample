@@ -25,7 +25,7 @@ import {
 
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
-    var user = await conusma.CreateUser();
+    var user = await conusma.createUser();
     
 
    }
