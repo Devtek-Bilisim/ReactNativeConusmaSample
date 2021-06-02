@@ -25,8 +25,9 @@ import {
 
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
-     const newStream:any = await conusma.enableAudioVideo();
-     setLocalStream(newStream);
+    var user = await conusma.CreateUser();
+    
+
    }
    return (
     <SafeAreaView style={styles.container}>
