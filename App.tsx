@@ -21,7 +21,7 @@ import {
 } from 'react-native-webrtc';
 
  const App = () => {
-   var conusma = new Conusma("test", { apiUrl: "https://emscloudapi.com:7788" });
+   var conusma = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
 
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
