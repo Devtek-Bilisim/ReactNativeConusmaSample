@@ -13,7 +13,8 @@ import {
    SafeAreaView,
    Button,
    View,
-   StyleSheet
+   StyleSheet,
+   Alert
  } from 'react-native';
  import {
   RTCView,
@@ -25,7 +26,7 @@ import {
 
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
-    var user = await conusma.createGuestUser();
+    var user = await conusma.createUser();
     console.log(user.userInfo);
 
    }
