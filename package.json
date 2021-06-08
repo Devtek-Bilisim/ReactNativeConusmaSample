@@ -10,9 +10,11 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.15.5",
     "@types/react-native-webrtc": "^1.75.3",
     "react": "17.0.1",
     "react-native": "0.64.1",
+    "react-native-background-timer": "^2.4.1",
     "react-native-conusma": "file:../react-native-conusma/react-native-conusma-1.0.12.tgz",
     "react-native-device-info": "^8.1.3"
   },

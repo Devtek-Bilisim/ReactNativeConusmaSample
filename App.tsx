@@ -27,6 +27,10 @@ import {
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
     var user = await conusma.createUser();
+    var meeting = await user.getProfileMeeting();
+    console.log("meeting => "+JSON.stringify(meeting));
+    var activeMeeting = await user.joinMeeting(meeting);
+    activeMeeting.open();
     console.log(user.userInfo);
 
    }
