@@ -20,6 +20,7 @@ import {
   RTCView,
   MediaStream
 } from 'react-native-webrtc';
+import { Meeting } from './node_modules/react-native-conusma/build/meeting';
 
  const App = () => {
    var conusma = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
@@ -27,8 +28,12 @@ import {
    const [localStream, setLocalStream] = useState<MediaStream>();
    const startLocalStream = async () => {
     var user = await conusma.createUser();
-    console.log(user.userInfo);
+    var profileMeeting = await user.getProfileMeeting();
+    var meeting:Meeting = await user.joinMeeting(profileMeeting);
 
+    meeting.open();
+    var newStream:any = meeting.enableAudioVideo();
+    setLocalStream(newStream);
    }
    return (
     <SafeAreaView style={styles.container}>
