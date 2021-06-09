@@ -1,70 +1,13 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-import Conusma from 'react-native-conusma';
-import React, {useState} from 'react';
-import {
-   SafeAreaView,
-   Button,
-   View,
-   StyleSheet,
-   Alert
- } from 'react-native';
- import {
-  RTCView,
-  MediaStream
-} from 'react-native-webrtc';
-import { Meeting } from './node_modules/react-native-conusma/build/meeting';
+import React from 'react';
+import {SafeAreaView} from 'react-native';
+import AppContainer from './src/navigation/AppContainer';
 
- const App = () => {
-   var conusma = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
-
-   const [localStream, setLocalStream] = useState<MediaStream>();
-   const startLocalStream = async () => {
-    var user = await conusma.createUser();
-    var profileMeeting = await user.getProfileMeeting();
-    var meeting:Meeting = await user.joinMeeting(profileMeeting);
-
-    meeting.open();
-    var newStream:any = meeting.enableAudioVideo();
-    setLocalStream(newStream);
-   }
-   return (
-    <SafeAreaView style={styles.container}>
-      <Button title="Kamerayı aç ve akışa başla" onPress={startLocalStream} />
-      <View style={styles.rtcview}>
-        {localStream && (
-          <RTCView style={styles.rtc} streamURL={localStream.toURL()} />
-        )}
-      </View>
+const App = () => {
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <AppContainer />
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#333',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: '100%',
-  },
-  rtcview: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-    width: '100%',
-    backgroundColor: 'black',
-  },
-  rtc: {
-    width: '100%',
-    height: '100%',
-  },
-});
-
- export default App;
+export default App;
