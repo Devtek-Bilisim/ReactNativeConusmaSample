@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from '../screens/home';
 import BroadCastScreen from '../screens/broadCast';
+import watchBroadcast from '../screens/watchBroadcast';
 const Stack = createStackNavigator();
 
 export default class AppNavigationContainer extends React.Component {
@@ -16,9 +17,14 @@ export default class AppNavigationContainer extends React.Component {
             options={{ title: 'Welcome'}}
           />
            <Stack.Screen
-            name="BroadCast"
+            name="Broadcast"
             component={BroadCastScreen}
-            options={{ title: 'BroadCast'}}
+            options={{ title: 'Broadcast'}}
+          />
+           <Stack.Screen
+            name="WatchBroadcast"
+            component={watchBroadcast}
+            options={{ title: 'Watch Broadcast'}}
           />
         </Stack.Navigator>
       </NavigationContainer>
