@@ -14,6 +14,7 @@ import {
 import Conusma from 'react-native-conusma';
 import { MeetingModel } from 'react-native-conusma/build/Models/meeting-model';
 import { User } from 'react-native-conusma/build/user';
+import { Meeting } from 'react-native-conusma/build/meeting';
 export default class broadCast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
@@ -26,15 +27,31 @@ export default class broadCast extends React.Component<any, any> {
     conusmaClass: Conusma;
     meeting: MeetingModel;
     user: User;
+    navigationListener:any = null;
+    activeMeeting:Meeting;
     async start() {
         try {
 
+            this.navigationListener =  this.props.navigation.addListener(
+                'state',((navigationInfo:any)=>{
+                   var Name = navigationInfo.data.state.routes.name;
+                   if(Name != "Broadcast")
+                   {
+                       console.log("changee state");
+                       if(this.meeting != null)
+                       {
+                           this.activeMeeting.close();
+                       }
+                       this.navigationListener();
+                   }
+                })
+                
+              );
             this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
             this.user = await this.conusmaClass.createUser();
             this.meeting = await this.user.getProfileMeeting();
-            Clipboard.setString('hello world')
-            var activeMeeting = await this.user.joinMeeting(this.meeting);
-            var stream = await activeMeeting.enableAudioVideo();
+             this.activeMeeting = await this.user.joinMeeting(this.meeting);
+            var stream = await this.activeMeeting.enableAudioVideo();
             this.setState({ localStream: stream, setlocalstream: true });
         } catch (error) {
             console.error(error);

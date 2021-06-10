@@ -15,51 +15,59 @@ import {
 import Conusma from 'react-native-conusma';
 import { MeetingModel } from 'react-native-conusma/build/Models/meeting-model';
 import { User } from 'react-native-conusma/build/user';
+import { GuestUser } from 'react-native-conusma/build/guest-user';
+import { Meeting } from 'react-native-conusma/build/meeting';
 export default class watchBroadcast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
         this.state = {
             localStream: MediaStream,
             setlocalstream: false,
-            meetingId: String,
-            meetingPassword: String,
-            meetingInvCode: String
         };
 
     }
     conusmaClass: Conusma;
-    meeting: MeetingModel;
-    user: User;
-    meetingId: string = " Doldur";
-    async start() {
-        try {
+    meeting: Meeting;
+    user: GuestUser;
+    meetingId: string = "";
+    meetingPassword: string = "";
+    meetingInviteCode: string = "";
+    navigationListener:any = null;
+    async watchBroadcast() {
+        this.navigationListener =  this.props.navigation.addListener(
+            'state',((navigationInfo:any)=>{
+               var Name = navigationInfo.data.state.routes.name;
+               if(Name != "WatchBroadcast")
+               {
+                   console.log("changee state");
+                   if(this.meeting != null)
+                   {
+                       this.meeting.close();
+                   }
+                   this.navigationListener();
+               }
+            })
+            
+          );
 
-            this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
-            this.user = await this.conusmaClass.createUser();
-            this.meeting = await this.user.getProfileMeeting();
-            Clipboard.setString('hello world')
-            var activeMeeting = await this.user.joinMeeting(this.meeting);
-            var stream = await activeMeeting.enableAudioVideo();
-            this.setState({ localStream: stream, setlocalstream: true });
+        try {
+            if (this.meetingInviteCode != "") {
+
+                this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
+                this.user = await this.conusmaClass.createGuestUser();
+                this.meeting = await this.user.joinMeetingByInviteCode(this.meetingInviteCode);
+                console.log("okk");
+                //var stream = await activeMeeting.enableAudioVideo();
+                //this.setState({ localStream: stream, setlocalstream: true });
+
+            } else {
+                if (this.meetingId != "" && this.meetingPassword != "") {
+
+                }
+            }
         } catch (error) {
             console.error(error);
-        }
-
-    }
-    copyMeetingIdAndPassword() {
-        if (this.meeting != null) {
-            var meetingString = "Meeting Id : " + this.meeting.MeetingId + "\n Meeting Password : " + this.meeting.Password;
-            Clipboard.setString(meetingString);
-            Alert.alert("", "Meeting id and password copied");
-        }
-
-
-    }
-    copyMeetingInvCode() {
-        if (this.meeting != null) {
-            var meetingString = this.meeting.InviteCode;
-            Clipboard.setString(meetingString);
-            Alert.alert("", "Meeting invite code copied");
+            Alert.alert(error);
         }
 
     }
@@ -74,23 +82,25 @@ export default class watchBroadcast extends React.Component<any, any> {
                     )}
                 </View>
                 <View style={styles.info}>
-                    <View style={{ }}>
+                    <View style={{}}>
                         <View>
                             <TextInput
                                 style={{ borderWidth: 1, color: "#007bff" }}
                                 placeholder="Meeting Id"
                                 placeholderTextColor="black"
                                 keyboardType="numeric"
+                                onChangeText={(text) => { this.meetingId = text }}
                             />
                             <TextInput
                                 style={{ borderWidth: 1, color: "#007bff" }}
                                 placeholder="Meeting Password"
                                 placeholderTextColor="black"
                                 keyboardType="numeric"
+                                onChangeText={(text) => { this.meetingPassword = text }}
                             />
                         </View>
                         <View style={styles.OR}>
-                        <Text style={{fontSize:20}}> {"OR"}</Text>
+                            <Text style={{ fontSize: 20 }}> {"OR"}</Text>
                         </View>
                         <View>
                             <TextInput
@@ -98,17 +108,19 @@ export default class watchBroadcast extends React.Component<any, any> {
                                 placeholder="Meeting Invite Code"
                                 placeholderTextColor="black"
                                 keyboardType="default"
+                                onChangeText={(text) => { this.meetingInviteCode = text }}
                             />
                         </View>
-                        <View style={{ marginTop: "1%" 
-        }}>
-                                <Button
-                                    onPress={(e) => this.copyMeetingInvCode()}
-                                    title="WATCH Broadcast"
-                                    color="#007bff"
-                                />
-                            </View>
-                       
+                        <View style={{
+                            marginTop: "1%"
+                        }}>
+                            <Button
+                                onPress={(e) => this.watchBroadcast()}
+                                title="WATCH Broadcast"
+                                color="#007bff"
+                            />
+                        </View>
+
 
                     </View>
                 </View>
@@ -141,11 +153,11 @@ const styles = StyleSheet.create({
         flex: 3,
 
     },
-    OR:{
+    OR: {
         justifyContent: 'center',
         alignItems: 'center',
     },
-  
+
 
 });
 
