@@ -65,13 +65,20 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
             if(this.activeMeeting != null)
             {
-                var produermeetingUsers:MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
-                if(produermeetingUsers.length > 0)
+                if(await this.activeMeeting.isApproved())
                 {
-                    var firstuser = produermeetingUsers[0];
-                    var stream = await this.activeMeeting.consume(firstuser);
-                    this.setState({ remoteStream: stream, setRemoteStream: true });
+                    var produermeetingUsers:MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
+                    if(produermeetingUsers.length > 0)
+                    {
+                        var firstuser = produermeetingUsers[0];
+                        var stream = await this.activeMeeting.consume(firstuser);
+                        console.log("stream ok");
+                        this.setState({ remoteStream: stream, setRemoteStream: true });
+                        await this.activeMeeting.connectMeeting();
+
+                    }
                 }
+               
             }
         } catch (error) {
             console.error(error);
