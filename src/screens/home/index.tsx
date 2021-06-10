@@ -14,10 +14,11 @@ export default class home extends React.Component<any,any> {
         super(props);
     }
     broadCastclick = () => {
-        this.props.navigation.navigate('BroadCast');
+        this.props.navigation.navigate('Broadcast');
     }
     watchClick = () => {
-        Alert.alert("Click");
+      this.props.navigation.navigate('WatchBroadcast');
+
     }
   render() {
     return (
