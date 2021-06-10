@@ -17,17 +17,18 @@ import { MeetingModel } from 'react-native-conusma/build/Models/meeting-model';
 import { User } from 'react-native-conusma/build/user';
 import { GuestUser } from 'react-native-conusma/build/guest-user';
 import { Meeting } from 'react-native-conusma/build/meeting';
+import { MeetingUserModel } from 'react-native-conusma/build/Models/meeting-user-model';
 export default class watchBroadcast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
         this.state = {
-            localStream: MediaStream,
-            setlocalstream: false,
+            remoteStream: MediaStream,
+            setRemoteStream: false,
         };
 
     }
     conusmaClass: Conusma;
-    meeting: Meeting;
+    activeMeeting: Meeting;
     user: GuestUser;
     meetingId: string = "";
     meetingPassword: string = "";
@@ -39,10 +40,9 @@ export default class watchBroadcast extends React.Component<any, any> {
                var Name = navigationInfo.data.state.routes.name;
                if(Name != "WatchBroadcast")
                {
-                   console.log("changee state");
-                   if(this.meeting != null)
+                   if(this.activeMeeting != null)
                    {
-                       this.meeting.close();
+                       this.activeMeeting.close();
                    }
                    this.navigationListener();
                }
@@ -52,17 +52,25 @@ export default class watchBroadcast extends React.Component<any, any> {
 
         try {
             if (this.meetingInviteCode != "") {
-
                 this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
                 this.user = await this.conusmaClass.createGuestUser();
-                this.meeting = await this.user.joinMeetingByInviteCode(this.meetingInviteCode);
-                console.log("okk");
-                //var stream = await activeMeeting.enableAudioVideo();
-                //this.setState({ localStream: stream, setlocalstream: true });
+                this.activeMeeting = await this.user.joinMeetingByInviteCode(this.meetingInviteCode);
 
             } else {
                 if (this.meetingId != "" && this.meetingPassword != "") {
-
+                    this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
+                    this.user = await this.conusmaClass.createGuestUser();
+                    this.activeMeeting = await this.user.joinMeeting(this.meetingId,this.meetingPassword);
+                }
+            }
+            if(this.activeMeeting != null)
+            {
+                var produermeetingUsers:MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
+                if(produermeetingUsers.length > 0)
+                {
+                    var firstuser = produermeetingUsers[0];
+                    var stream = await this.activeMeeting.consume(firstuser);
+                    this.setState({ remoteStream: stream, setRemoteStream: true });
                 }
             }
         } catch (error) {
@@ -77,8 +85,8 @@ export default class watchBroadcast extends React.Component<any, any> {
                 flexDirection: "column"
             }]}>
                 <View style={styles.rtcView}>
-                    {this.state.setlocalstream && (
-                        <RTCView style={styles.rtc} streamURL={this.state.localStream.toURL()} />
+                    {this.state.setRemoteStream && (
+                        <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
                     )}
                 </View>
                 <View style={styles.info}>

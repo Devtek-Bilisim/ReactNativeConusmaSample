@@ -37,7 +37,6 @@ export default class broadCast extends React.Component<any, any> {
                    var Name = navigationInfo.data.state.routes.name;
                    if(Name != "Broadcast")
                    {
-                       console.log("changee state");
                        if(this.meeting != null)
                        {
                            this.activeMeeting.close();
