@@ -51,6 +51,7 @@ export default class broadCast extends React.Component<any, any> {
             this.meeting = await this.user.getProfileMeeting();
              this.activeMeeting = await this.user.joinMeeting(this.meeting);
             var stream = await this.activeMeeting.enableAudioVideo();
+            await this.activeMeeting.open(stream);
             this.setState({ localStream: stream, setlocalstream: true });
         } catch (error) {
             console.error(error);
