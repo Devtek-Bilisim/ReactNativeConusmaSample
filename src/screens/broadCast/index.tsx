@@ -21,50 +21,97 @@ export default class broadCast extends React.Component<any, any> {
         super(props);
         this.state = {
             localStream: MediaStream,
-            setlocalstream: false
+            setlocalstream: false,
+            startButtonText: "Start BroadCast",
+            muteMicButtonText: "Mute Mic",
+            startStopButtonText:"Stop CAM",
+            startButtonDisable: false
         };
 
     }
+
     conusmaClass: Conusma;
     meeting: MeetingModel;
     user: User;
-    navigationListener:any = null;
-    activeMeeting:Meeting;
+    navigationListener: any = null;
+    activeMeeting: Meeting;
     async start() {
         try {
-
-            this.navigationListener =  this.props.navigation.addListener(
-                'state',((navigationInfo:any)=>{
-                   var Name = navigationInfo.data.state.routes.name;
-                   if(Name != "Broadcast")
-                   {
-                       if(this.meeting != null)
-                       {
-                           this.activeMeeting.close(true);
-                       }
-                       this.navigationListener();
-                   }
+            this.setState({startButtonDisable:true,startButtonText:"Please Wait"});
+            this.navigationListener = this.props.navigation.addListener(
+                'state', ((navigationInfo: any) => {
+                    var Name = navigationInfo.data.state.routes.name;
+                    if (Name != "Broadcast") {
+                        if (this.activeMeeting != null) {
+                            this.activeMeeting.close(true);
+                            this.setState({startButtonDisable:false,startButtonText:"Start BroadCast"});
+                        }
+                        this.navigationListener();
+                    }
                 })
-                
-              );
+
+            );
             this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
             this.user = await this.conusmaClass.createUser();
             this.meeting = await this.user.getProfileMeeting();
-             this.activeMeeting = await this.user.joinMeeting(this.meeting);
+            this.activeMeeting = await this.user.joinMeeting(this.meeting);
             var stream = await this.activeMeeting.enableAudioVideo();
             await this.activeMeeting.open(stream);
-            this.setState({ localStream: stream, setlocalstream: true });
+            this.setState({ startButtonDisable:true,startButtonText:"Live",localStream: stream, setlocalstream: true });
         } catch (error) {
             Alert.alert(error);
+            this.setState({startButtonDisable:false,startButtonText:"Start BroadCast"});
+
         }
 
+
     }
-    async SwtichCamera()
-    {
+    async SwitchCamera() {
         try {
-            if(this.activeMeeting != null)
-            {
-                this.activeMeeting.switchCamera(this.state.localStream);
+            if (this.activeMeeting != null) {
+                this.setState({ localStream: stream, setlocalstream: false });
+                var stream = await this.activeMeeting.switchCamera();
+                this.setState({ localStream: stream, setlocalstream: true });
+            }
+        } catch (error) {
+            Alert.alert(error);
+
+        }
+    }
+    async StartStopCamera() {
+        try {
+            if (this.activeMeeting != null) {
+                this.setState({ localStream: stream, setlocalstream: false });
+                var stream = await this.activeMeeting.toggleVideo();
+                if(this.activeMeeting.isVideoActive)
+                {
+                    this.setState({startStopButtonText:"Stop CAM"});
+
+                }
+                else
+                {
+                    this.setState({startStopButtonText:"Start CAM"});
+
+                }
+                this.setState({ localStream: stream, setlocalstream: true });
+            }
+        } catch (error) {
+            Alert.alert(error);
+
+        }
+    }
+    async StartStopMic() {
+        try {
+            if (this.activeMeeting != null) {
+                this.setState({ localStream: stream, setlocalstream: false });
+                var stream = await this.activeMeeting.toggleAudio();
+                if (this.activeMeeting.isAudioActive) {
+                    this.setState({muteMicButtonText : "Mute Mic"});
+                }
+                else {
+                    this.setState({muteMicButtonText : "Start Mic"});
+                }
+                this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
             Alert.alert(error);
@@ -72,23 +119,21 @@ export default class broadCast extends React.Component<any, any> {
         }
     }
     copyMeetingIdAndPassword() {
-        if(this.meeting != null)
-        {
-            var meetingString = "Meeting Id : " + this.meeting.MeetingId + "\n Meeting Password : " + this.meeting.Password ;
+        if (this.meeting != null) {
+            var meetingString = "Meeting Id : " + this.meeting.MeetingId + "\n Meeting Password : " + this.meeting.Password;
             Clipboard.setString(meetingString);
-            Alert.alert("","Meeting id and password copied");
+            Alert.alert("", "Meeting id and password copied");
         }
-     
+
 
     }
     copyMeetingInvCode() {
-        if(this.meeting != null)
-        {
-            var meetingString =  this.meeting.InviteCode ;
+        if (this.meeting != null) {
+            var meetingString = this.meeting.InviteCode;
             Clipboard.setString(meetingString);
-            Alert.alert("","Meeting invite code copied");
+            Alert.alert("", "Meeting invite code copied");
         }
-       
+
     }
     render() {
         return (
@@ -99,22 +144,46 @@ export default class broadCast extends React.Component<any, any> {
                     {this.state.setlocalstream && (
                         <RTCView style={styles.rtc} streamURL={this.state.localStream.toURL()}></RTCView>
                     )}
-                <View style={{zIndex:1,position:"absolute",right:0,top:0}}>
-                <Button
-                    onPress={(e) => this.SwtichCamera()}
-                    title="Switch Camera"
-                    color="#007bff"
-                        />
-                </View>
+
+
                 </View>
                 <View style={styles.info}>
                     <View style={{ paddingTop: "3%" }}>
                         <Button
                             onPress={(e) => this.start()}
-                            title="Start BroadCast"
+                            disabled={this.state.startButtonDisable}
+                            title={this.state.startButtonText}
                             color="#007bff"
                         />
+
                     </View>
+                    <View style={styles.row}>
+
+                        <View style={styles.cameramicbutton}>
+                            <Button
+                                onPress={(e) => this.StartStopMic()}
+                                title={this.state.muteMicButtonText}
+                                color="#007bff"
+                            />
+                        </View>
+                        <View style={styles.cameramicbutton}>
+                            <Button
+                                onPress={(e) => this.StartStopCamera()}
+                                title={this.state.startStopButtonText}
+                                color="#007bff"
+                            />
+                        </View>
+                        <View style={styles.cameramicbutton}>
+                            <Button
+                                onPress={(e) => this.SwitchCamera()}
+                                title="Switch Cam"
+                                color="#007bff"
+                            />
+                        </View>
+
+
+                    </View>
+
                     <View style={{ paddingTop: "3%" }}>
                         <Text style={{}}> {"Meeting id : " + this.meeting?.MeetingId}</Text>
                         <Text style={{}}> {"Meeting password :" + this.meeting?.Password}</Text>
@@ -169,6 +238,16 @@ const styles = StyleSheet.create({
     buttoncontainer: {
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    row: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        flex: 1,
+        paddingTop: "1%"
+    },
+    cameramicbutton: {
+        paddingLeft: "1%",
+        paddingRight: "1%"
     }
 });
 
