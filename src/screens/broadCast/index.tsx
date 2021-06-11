@@ -4,9 +4,10 @@ import {
     View,
     StyleSheet,
     Text,
-    Alert
+    Alert,
 } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
+
 import {
     RTCView,
     MediaStream
@@ -39,7 +40,7 @@ export default class broadCast extends React.Component<any, any> {
                    {
                        if(this.meeting != null)
                        {
-                           this.activeMeeting.close();
+                           this.activeMeeting.close(true);
                        }
                        this.navigationListener();
                    }
@@ -54,9 +55,21 @@ export default class broadCast extends React.Component<any, any> {
             await this.activeMeeting.open(stream);
             this.setState({ localStream: stream, setlocalstream: true });
         } catch (error) {
-            console.error(error);
+            Alert.alert(error);
         }
 
+    }
+    async SwtichCamera()
+    {
+        try {
+            if(this.activeMeeting != null)
+            {
+                this.activeMeeting.switchCamera(this.state.localStream);
+            }
+        } catch (error) {
+            Alert.alert(error);
+
+        }
     }
     copyMeetingIdAndPassword() {
         if(this.meeting != null)
@@ -84,8 +97,15 @@ export default class broadCast extends React.Component<any, any> {
             }]}>
                 <View style={styles.rtcView}>
                     {this.state.setlocalstream && (
-                        <RTCView style={styles.rtc} streamURL={this.state.localStream.toURL()} />
+                        <RTCView style={styles.rtc} streamURL={this.state.localStream.toURL()}></RTCView>
                     )}
+                <View style={{zIndex:1,position:"absolute",right:0,top:0}}>
+                <Button
+                    onPress={(e) => this.SwtichCamera()}
+                    title="Switch Camera"
+                    color="#007bff"
+                        />
+                </View>
                 </View>
                 <View style={styles.info}>
                     <View style={{ paddingTop: "3%" }}>
