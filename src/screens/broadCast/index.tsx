@@ -63,8 +63,6 @@ export default class broadCast extends React.Component<any, any> {
             this.setState({startButtonDisable:false,startButtonText:"Start BroadCast"});
 
         }
-
-
     }
     async SwitchCamera() {
         try {
