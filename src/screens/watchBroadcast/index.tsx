@@ -24,6 +24,9 @@ export default class watchBroadcast extends React.Component<any, any> {
         this.state = {
             remoteStream: MediaStream,
             setRemoteStream: false,
+            watchButtonText:"WATCH BROADCAST",
+            watchButtonDisable:false
+
         };
 
     }
@@ -51,6 +54,7 @@ export default class watchBroadcast extends React.Component<any, any> {
           );
 
         try {
+            this.setState({watchButtonText : "WAIT",watchButtonDisable:true});
             if (this.meetingInviteCode != "") {
                 this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
                 this.user = await this.conusmaClass.createGuestUser();
@@ -75,6 +79,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                         console.log("stream ok");
                         this.setState({ remoteStream: stream, setRemoteStream: true });
                         //await this.activeMeeting.connectMeeting();
+                        this.setState({watchButtonText : "LIVE",watchButtonDisable:true});
 
                     }
                 }
@@ -83,6 +88,8 @@ export default class watchBroadcast extends React.Component<any, any> {
         } catch (error) {
             console.error(error);
             Alert.alert(error);
+            this.setState({watchButtonText : "WATCH BROADCAST",watchButtonDisable:false});
+
         }
 
     }
@@ -131,7 +138,8 @@ export default class watchBroadcast extends React.Component<any, any> {
                         }}>
                             <Button
                                 onPress={(e) => this.watchBroadcast()}
-                                title="WATCH Broadcast"
+                                title={this.state.watchButtonText}
+                                disabled={this.state.watchButtonDisable}
                                 color="#007bff"
                             />
                         </View>
