@@ -42,7 +42,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                {
                    if(this.activeMeeting != null)
                    {
-                       this.activeMeeting.close();
+                       this.activeMeeting.close(true);
                    }
                    this.navigationListener();
                }
@@ -74,7 +74,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                         var stream = await this.activeMeeting.consume(firstuser);
                         console.log("stream ok");
                         this.setState({ remoteStream: stream, setRemoteStream: true });
-                        await this.activeMeeting.connectMeeting();
+                        //await this.activeMeeting.connectMeeting();
 
                     }
                 }
