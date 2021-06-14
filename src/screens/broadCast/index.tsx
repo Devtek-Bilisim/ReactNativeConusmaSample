@@ -67,19 +67,15 @@ export default class broadCast extends React.Component<any, any> {
     async SwitchCamera() {
         try {
             if (this.activeMeeting != null) {
-                this.setState({ localStream: stream, setlocalstream: false });
                 var stream = await this.activeMeeting.switchCamera();
                 this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
-            Alert.alert(error);
-
         }
     }
     async StartStopCamera() {
         try {
             if (this.activeMeeting != null) {
-                this.setState({ localStream: stream, setlocalstream: false });
                 var stream = await this.activeMeeting.toggleVideo();
                 if(this.activeMeeting.isVideoActive)
                 {
@@ -94,14 +90,12 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
-            Alert.alert(error);
 
         }
     }
     async StartStopMic() {
         try {
             if (this.activeMeeting != null) {
-                this.setState({ localStream: stream, setlocalstream: false });
                 var stream = await this.activeMeeting.toggleAudio();
                 if (this.activeMeeting.isAudioActive) {
                     this.setState({muteMicButtonText : "Mute Mic"});
@@ -112,7 +106,6 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
-            Alert.alert(error);
 
         }
     }

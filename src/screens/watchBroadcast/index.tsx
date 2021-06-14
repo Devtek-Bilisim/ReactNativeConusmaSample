@@ -83,7 +83,6 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
         } catch (error) {
             console.error(error);
-            Alert.alert(error);
             this.setState({ watchButtonText: "WATCH BROADCAST", watchButtonDisable: false });
 
         }
@@ -98,7 +97,6 @@ export default class watchBroadcast extends React.Component<any, any> {
 
         } catch (error) {
             console.error(error);
-            Alert.alert(error);
         }
     }
     render() {
