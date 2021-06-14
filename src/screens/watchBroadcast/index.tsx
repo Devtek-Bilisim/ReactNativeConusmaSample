@@ -24,37 +24,36 @@ export default class watchBroadcast extends React.Component<any, any> {
         this.state = {
             remoteStream: MediaStream,
             setRemoteStream: false,
-            watchButtonText:"WATCH BROADCAST",
-            watchButtonDisable:false
+            watchButtonText: "WATCH BROADCAST",
+            watchButtonDisable: false
 
         };
 
     }
+    speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
     user: GuestUser;
     meetingId: string = "";
     meetingPassword: string = "";
     meetingInviteCode: string = "";
-    navigationListener:any = null;
+    navigationListener: any = null;
     async watchBroadcast() {
-        this.navigationListener =  this.props.navigation.addListener(
-            'state',((navigationInfo:any)=>{
-               var Name = navigationInfo.data.state.routes.name;
-               if(Name != "WatchBroadcast")
-               {
-                   if(this.activeMeeting != null)
-                   {
-                       this.activeMeeting.close(true);
-                   }
-                   this.navigationListener();
-               }
+        this.navigationListener = this.props.navigation.addListener(
+            'state', ((navigationInfo: any) => {
+                var Name = navigationInfo.data.state.routes.name;
+                if (Name != "WatchBroadcast") {
+                    if (this.activeMeeting != null) {
+                        this.activeMeeting.close(true);
+                    }
+                    this.navigationListener();
+                }
             })
-            
-          );
+
+        );
 
         try {
-            this.setState({watchButtonText : "WAIT",watchButtonDisable:true});
+            this.setState({ watchButtonText: "WAIT", watchButtonDisable: true });
             if (this.meetingInviteCode != "") {
                 this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
                 this.user = await this.conusmaClass.createGuestUser();
@@ -64,34 +63,43 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (this.meetingId != "" && this.meetingPassword != "") {
                     this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
                     this.user = await this.conusmaClass.createGuestUser();
-                    this.activeMeeting = await this.user.joinMeeting(this.meetingId,this.meetingPassword);
+                    this.activeMeeting = await this.user.joinMeeting(this.meetingId, this.meetingPassword);
                 }
             }
-            if(this.activeMeeting != null)
-            {
-                if(await this.activeMeeting.isApproved())
-                {
-                    var produermeetingUsers:MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
-                    if(produermeetingUsers.length > 0)
-                    {
+            if (this.activeMeeting != null) {
+                if (await this.activeMeeting.isApproved()) {
+                    var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
+                    if (produermeetingUsers.length > 0) {
                         var firstuser = produermeetingUsers[0];
                         var stream = await this.activeMeeting.consume(firstuser);
                         console.log("stream ok");
                         this.setState({ remoteStream: stream, setRemoteStream: true });
                         //await this.activeMeeting.connectMeeting();
-                        this.setState({watchButtonText : "LIVE",watchButtonDisable:true});
+                        this.setState({ watchButtonText: "LIVE", watchButtonDisable: true });
 
                     }
                 }
-               
+
             }
         } catch (error) {
             console.error(error);
             Alert.alert(error);
-            this.setState({watchButtonText : "WATCH BROADCAST",watchButtonDisable:false});
+            this.setState({ watchButtonText: "WATCH BROADCAST", watchButtonDisable: false });
 
         }
 
+    }
+    changeSpeaker() {
+        try {
+            if (this.activeMeeting != null && this.state.setRemoteStream) {
+                this.speakerEnablePlayer = !this.speakerEnablePlayer;
+                this.activeMeeting.setSpeaker(this.speakerEnablePlayer);
+            }
+
+        } catch (error) {
+            console.error(error);
+            Alert.alert(error);
+        }
     }
     render() {
         return (
@@ -99,6 +107,18 @@ export default class watchBroadcast extends React.Component<any, any> {
                 flexDirection: "column"
             }]}>
                 <View style={styles.rtcView}>
+                    <View style={{
+                        position: "absolute",
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 2
+                    }}>
+                        <Button
+                            onPress={(e) => this.changeSpeaker()}
+                            title="change speaker"
+                            color="#007bff"
+                        />
+                    </View>
                     {this.state.setRemoteStream && (
                         <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
                     )}
