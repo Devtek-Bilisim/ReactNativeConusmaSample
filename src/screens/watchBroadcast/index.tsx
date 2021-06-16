@@ -18,6 +18,8 @@ import { User } from 'react-native-conusma/build/user';
 import { GuestUser } from 'react-native-conusma/build/guest-user';
 import { Meeting } from 'react-native-conusma/build/meeting';
 import { MeetingUserModel } from 'react-native-conusma/build/Models/meeting-user-model';
+import { ScrollView } from 'react-native-gesture-handler';
+import RtcView from '../../component/viewStream';
 export default class watchBroadcast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
@@ -25,17 +27,19 @@ export default class watchBroadcast extends React.Component<any, any> {
             remoteStream: MediaStream,
             setRemoteStream: false,
             watchButtonText: "WATCH BROADCAST",
-            watchButtonDisable: false
-
+            watchButtonDisable: false,
+            sendStreamDisable: true,
+            sendStreamButtonText: "Send Local Stream",
         };
 
     }
+    meetingUsers: RtcView[] = [];
     speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
     user: GuestUser;
-    meetingId: string = "";
-    meetingPassword: string = "";
+    meetingId: string = "76241585";
+    meetingPassword: string = "75242652";
     meetingInviteCode: string = "";
     navigationListener: any = null;
     async watchBroadcast() {
@@ -49,9 +53,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                     this.navigationListener();
                 }
             })
-
         );
-
         try {
             this.setState({ watchButtonText: "WAIT", watchButtonDisable: true });
             if (this.meetingInviteCode != "") {
@@ -69,15 +71,14 @@ export default class watchBroadcast extends React.Component<any, any> {
             if (this.activeMeeting != null) {
                 if (await this.activeMeeting.isApproved()) {
                     var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
-                    if (produermeetingUsers.length > 0) {
-                        var firstuser = produermeetingUsers[0];
-                        var stream = await this.activeMeeting.consume(firstuser);
-                        console.log("stream ok");
-                        this.setState({ remoteStream: stream, setRemoteStream: true });
-                        //await this.activeMeeting.connectMeeting();
-                        this.setState({ watchButtonText: "LIVE", watchButtonDisable: true });
+                    await this.connectUsers(produermeetingUsers);
+                    this.setState({ watchButtonText: "LIVE", watchButtonDisable: true, sendStreamDisable: false });
+                    this.activeMeeting.conusmaWorker.meetingWorkerEvent.on('meetingUsers',async ()=>{
+                        var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
+                        await this.connectUsers(produermeetingUsers);
+                        await this.deleteUsers(produermeetingUsers);
 
-                    }
+                    });
                 }
 
             }
@@ -87,6 +88,27 @@ export default class watchBroadcast extends React.Component<any, any> {
 
         }
 
+    }
+    async connectUsers(produermeetingUsers: MeetingUserModel[]) {
+        for (var user of produermeetingUsers) {
+            if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
+                var stream = await this.activeMeeting.consume(user);
+                var _rtcView = new RtcView(stream, user);
+                this.meetingUsers.push(_rtcView);
+                this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+
+            }
+        }
+    }
+    async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
+        for (var user_it = 0 ; user_it < this.meetingUsers.length;user_it++) {
+            var deleteUser = this.meetingUsers[user_it].meetingUser;
+            if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
+                this.meetingUsers.splice(user_it, 1);
+                this.setState({});
+                //this.activeMeeting.closeConsumer(deleteUser);
+            }
+        }
     }
     changeSpeaker() {
         try {
@@ -99,12 +121,39 @@ export default class watchBroadcast extends React.Component<any, any> {
             console.error(error);
         }
     }
+    async sendLocalStream() {
+        if (this.activeMeeting != null) {
+            if (this.meetingUsers.find(us => us.meetingUser.Id == this.activeMeeting.meetingUser.Id) == null) {
+                var localstream = await this.activeMeeting.enableAudioVideo();
+                var _rtcView = new RtcView(localstream, this.activeMeeting.meetingUser);
+                this.meetingUsers.push(_rtcView);
+                this.activeMeeting.open(localstream);
+                this.setState({ sendStreamDisable: true });
+            }
+
+        }
+    }
     render() {
         return (
             <View style={[styles.container, {
                 flexDirection: "column"
             }]}>
-                <View style={styles.rtcView}>
+                <View style={styles.videoElementArea}>
+                    <ScrollView horizontal={true}>
+                        {this.meetingUsers.map((item, key) => (
+                            <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
+                        )
+                        )}
+
+
+                    </ScrollView>
+                </View>
+                <View style={styles.mainVideoArea}>
+                    <View style={styles.rtcMainVideo}>
+                        {this.state.setRemoteStream && (
+                            <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
+                        )}
+                    </View>
                     <View style={{
                         position: "absolute",
                         right: 0,
@@ -117,31 +166,9 @@ export default class watchBroadcast extends React.Component<any, any> {
                             color="#007bff"
                         />
                     </View>
-                    {this.state.setRemoteStream && (
-                        <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
-                    )}
                 </View>
                 <View style={styles.info}>
                     <View style={{}}>
-                        <View>
-                            <TextInput
-                                style={{ borderWidth: 1, color: "#007bff" }}
-                                placeholder="Meeting Id"
-                                placeholderTextColor="black"
-                                keyboardType="numeric"
-                                onChangeText={(text) => { this.meetingId = text }}
-                            />
-                            <TextInput
-                                style={{ borderWidth: 1, color: "#007bff" }}
-                                placeholder="Meeting Password"
-                                placeholderTextColor="black"
-                                keyboardType="numeric"
-                                onChangeText={(text) => { this.meetingPassword = text }}
-                            />
-                        </View>
-                        <View style={styles.OR}>
-                            <Text style={{ fontSize: 20 }}> {"OR"}</Text>
-                        </View>
                         <View>
                             <TextInput
                                 style={{ borderWidth: 1, color: "#007bff" }}
@@ -161,7 +188,16 @@ export default class watchBroadcast extends React.Component<any, any> {
                                 color="#007bff"
                             />
                         </View>
-
+                        <View style={{
+                            marginTop: "1%"
+                        }}>
+                            <Button
+                                onPress={(e) => this.sendLocalStream()}
+                                title={this.state.sendStreamButtonText}
+                                disabled={this.state.sendStreamDisable}
+                                color="#007bff"
+                            />
+                        </View>
 
                     </View>
                 </View>
@@ -178,8 +214,19 @@ const styles = StyleSheet.create({
         height: '100%',
         flex: 1
     },
-    rtcView: {
-        flex: 3.7,
+    mainVideoArea: {
+        flex: 4.7,
+        backgroundColor: "blue"
+    },
+    videoElementArea: {
+        flex: 1.2,
+        backgroundColor: "black",
+        borderColor: "white", borderWidth: 1
+    },
+    childRtcView: {
+        backgroundColor: 'black', width: 100, marginLeft: 10
+    },
+    rtcMainVideo: {
         backgroundColor: "black",
         justifyContent: 'center',
         alignItems: 'center',
@@ -191,13 +238,9 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     info: {
-        flex: 3,
+        flex: 2.2,
+    },
 
-    },
-    OR: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
 
 
 });
