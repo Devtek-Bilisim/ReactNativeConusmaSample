@@ -49,6 +49,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (Name != "WatchBroadcast") {
                     if (this.activeMeeting != null) {
                         this.activeMeeting.close(true);
+                        this.meetingUsers=[];
                     }
                     this.navigationListener();
                 }
@@ -92,10 +93,15 @@ export default class watchBroadcast extends React.Component<any, any> {
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
         for (var user of produermeetingUsers) {
             if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
+               try {
                 var stream = await this.activeMeeting.consume(user);
                 var _rtcView = new RtcView(stream, user);
                 this.meetingUsers.push(_rtcView);
                 this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+               } catch (error) {
+                   
+               }
+               
 
             }
         }
@@ -138,36 +144,7 @@ export default class watchBroadcast extends React.Component<any, any> {
             <View style={[styles.container, {
                 flexDirection: "column"
             }]}>
-                <View style={styles.videoElementArea}>
-                    <ScrollView horizontal={true}>
-                        {this.meetingUsers.map((item, key) => (
-                            <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
-                        )
-                        )}
-
-
-                    </ScrollView>
-                </View>
-                <View style={styles.mainVideoArea}>
-                    <View style={styles.rtcMainVideo}>
-                        {this.state.setRemoteStream && (
-                            <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
-                        )}
-                    </View>
-                    <View style={{
-                        position: "absolute",
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 2
-                    }}>
-                        <Button
-                            onPress={(e) => this.changeSpeaker()}
-                            title="change speaker"
-                            color="#007bff"
-                        />
-                    </View>
-                </View>
-                <View style={styles.info}>
+                   <View style={styles.info}>
                     <View style={{}}>
                         <View>
                             <TextInput
@@ -201,6 +178,36 @@ export default class watchBroadcast extends React.Component<any, any> {
 
                     </View>
                 </View>
+                <View style={styles.videoElementArea}>
+                    <ScrollView horizontal={true}>
+                        {this.meetingUsers.map((item, key) => (
+                            <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
+                        )
+                        )}
+
+
+                    </ScrollView>
+                </View>
+                <View style={styles.mainVideoArea}>
+                    <View style={styles.rtcMainVideo}>
+                        {this.state.setRemoteStream && (
+                            <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
+                        )}
+                    </View>
+                    <View style={{
+                        position: "absolute",
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 2
+                    }}>
+                        <Button
+                            onPress={(e) => this.changeSpeaker()}
+                            title="change speaker"
+                            color="#007bff"
+                        />
+                    </View>
+                </View>
+             
 
 
             </View>
