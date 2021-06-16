@@ -38,8 +38,8 @@ export default class watchBroadcast extends React.Component<any, any> {
     conusmaClass: Conusma;
     activeMeeting: Meeting;
     user: GuestUser;
-    meetingId: string = "76241585";
-    meetingPassword: string = "75242652";
+    meetingId: string = "";
+    meetingPassword: string = "";
     meetingInviteCode: string = "";
     navigationListener: any = null;
     async watchBroadcast() {
