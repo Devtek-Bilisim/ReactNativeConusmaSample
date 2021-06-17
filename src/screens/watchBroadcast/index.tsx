@@ -20,6 +20,7 @@ import { Meeting } from 'react-native-conusma/build/meeting';
 import { MeetingUserModel } from 'react-native-conusma/build/Models/meeting-user-model';
 import { ScrollView } from 'react-native-gesture-handler';
 import RtcView from '../../component/viewStream';
+import { ConusmaException } from 'react-native-conusma/build/Exceptions/conusma-exception';
 export default class watchBroadcast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
@@ -49,7 +50,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (Name != "WatchBroadcast") {
                     if (this.activeMeeting != null) {
                         this.activeMeeting.close(true);
-                        this.meetingUsers=[];
+                        this.meetingUsers = [];
                     }
                     this.navigationListener();
                 }
@@ -74,7 +75,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                     var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
                     await this.connectUsers(produermeetingUsers);
                     this.setState({ watchButtonText: "LIVE", watchButtonDisable: true, sendStreamDisable: false });
-                    this.activeMeeting.conusmaWorker.meetingWorkerEvent.on('meetingUsers',async ()=>{
+                    this.activeMeeting.conusmaWorker.meetingWorkerEvent.on('meetingUsers', async () => {
                         var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
                         await this.connectUsers(produermeetingUsers);
                         await this.deleteUsers(produermeetingUsers);
@@ -84,7 +85,10 @@ export default class watchBroadcast extends React.Component<any, any> {
 
             }
         } catch (error) {
-            console.error(error);
+            if (error instanceof ConusmaException) {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
             this.setState({ watchButtonText: "WATCH BROADCAST", watchButtonDisable: false });
 
         }
@@ -93,21 +97,25 @@ export default class watchBroadcast extends React.Component<any, any> {
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
         for (var user of produermeetingUsers) {
             if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
-               try {
-                var stream = await this.activeMeeting.consume(user);
-                var _rtcView = new RtcView(stream, user);
-                this.meetingUsers.push(_rtcView);
-                this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
-               } catch (error) {
-                   
-               }
-               
+                try {
+                    var stream = await this.activeMeeting.consume(user);
+                    var _rtcView = new RtcView(stream, user);
+                    this.meetingUsers.push(_rtcView);
+                    this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+                } catch (error) {
+                    if(error instanceof ConusmaException)
+                    {
+                        Alert.alert("error",error.message);
+                    }
+                    console.log(JSON.stringify(error));
+                }
+
 
             }
         }
     }
     async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
-        for (var user_it = 0 ; user_it < this.meetingUsers.length;user_it++) {
+        for (var user_it = 0; user_it < this.meetingUsers.length; user_it++) {
             var deleteUser = this.meetingUsers[user_it].meetingUser;
             if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
                 this.meetingUsers.splice(user_it, 1);
@@ -123,8 +131,12 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.activeMeeting.setSpeaker(this.speakerEnablePlayer);
             }
 
-        } catch (error) {
-            console.error(error);
+        }catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
     }
     async sendLocalStream() {
@@ -144,7 +156,7 @@ export default class watchBroadcast extends React.Component<any, any> {
             <View style={[styles.container, {
                 flexDirection: "column"
             }]}>
-                   <View style={styles.info}>
+                <View style={styles.info}>
                     <View style={{}}>
                         <View>
                             <TextInput
@@ -207,7 +219,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                         />
                     </View>
                 </View>
-             
+
 
 
             </View>

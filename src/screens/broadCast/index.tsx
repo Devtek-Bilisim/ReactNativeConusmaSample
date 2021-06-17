@@ -19,6 +19,7 @@ import { User } from 'react-native-conusma/build/user';
 import { Meeting } from 'react-native-conusma/build/meeting';
 import RtcView from '../../component/viewStream';
 import { MeetingUserModel } from 'react-native-conusma/build/Models/meeting-user-model';
+import { ConusmaException } from 'react-native-conusma/build/Exceptions/conusma-exception';
 
 export default class broadCast extends React.Component<any, any> {
     constructor(props: any) {
@@ -75,30 +76,46 @@ export default class broadCast extends React.Component<any, any> {
                 await this.deleteUsers(produermeetingUsers);
             });
         } catch (error) {
-            Alert.alert(error);
-            this.setState({ startButtonDisable: false, startButtonText: "Start BroadCast" });
-
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
-        for (var user of produermeetingUsers) {
-            if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
-                var stream = await this.activeMeeting.consume(user);
-                var _rtcView = new RtcView(stream, user);
-                this.meetingUsers.push(_rtcView);
-                this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+        try {
+            for (var user of produermeetingUsers) {
+                if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
+                    var stream = await this.activeMeeting.consume(user);
+                    var _rtcView = new RtcView(stream, user);
+                    this.meetingUsers.push(_rtcView);
+                    this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+                }
             }
+        } catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
+      
     }
     async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
-        for (var user_it = 0 ; user_it < this.meetingUsers.length;user_it++) {
-            var deleteUser = this.meetingUsers[user_it].meetingUser;
-            if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                this.meetingUsers.splice(user_it, 1);
-                this.setState({});
-                this.activeMeeting.closeConsumer(deleteUser);
+        try {
+            for (var user_it = 0 ; user_it < this.meetingUsers.length;user_it++) {
+                var deleteUser = this.meetingUsers[user_it].meetingUser;
+                if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
+                    this.meetingUsers.splice(user_it, 1);
+                    this.setState({});
+                    this.activeMeeting.closeConsumer(deleteUser);
+                }
             }
+        }catch (error) {
+            console.log(JSON.stringify(error));
         }
+      
     }
     async SwitchCamera() {
         try {
@@ -106,7 +123,12 @@ export default class broadCast extends React.Component<any, any> {
                 var stream = await this.activeMeeting.switchCamera();
                 this.setState({ localStream: stream, setlocalstream: true });
             }
-        } catch (error) {
+        }catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
     }
     async StartStopCamera() {
@@ -124,7 +146,11 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
-
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
     }
     async StartStopMic() {
@@ -140,7 +166,11 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: stream, setlocalstream: true });
             }
         } catch (error) {
-
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
         }
     }
     copyMeetingIdAndPassword() {
