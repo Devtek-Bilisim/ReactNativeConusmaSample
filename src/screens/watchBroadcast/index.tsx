@@ -68,6 +68,7 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
             if (this.activeMeeting != null) {
                 if (await this.activeMeeting.isApproved()) {
+                    this.activeMeeting.open();
                     var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
                     if (produermeetingUsers.length > 0) {
                         var firstuser = produermeetingUsers[0];
