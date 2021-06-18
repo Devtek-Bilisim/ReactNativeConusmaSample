@@ -72,6 +72,7 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
             if (this.activeMeeting != null) {
                 if (await this.activeMeeting.isApproved()) {
+                    this.activeMeeting.open();
                     var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
                     await this.connectUsers(produermeetingUsers);
                     this.setState({ watchButtonText: "LIVE", watchButtonDisable: true, sendStreamDisable: false });
@@ -145,7 +146,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 var localstream = await this.activeMeeting.enableAudioVideo();
                 var _rtcView = new RtcView(localstream, this.activeMeeting.meetingUser);
                 this.meetingUsers.push(_rtcView);
-                this.activeMeeting.open(localstream);
+                this.activeMeeting.produce(localstream);
                 this.setState({ sendStreamDisable: true });
             }
 
