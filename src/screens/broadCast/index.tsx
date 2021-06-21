@@ -65,6 +65,7 @@ export default class broadCast extends React.Component<any, any> {
             this.activeMeeting = await this.user.joinMeeting(this.meeting);
             var stream = await this.activeMeeting.enableAudioVideo();
             this.activeMeeting.open();
+            this.activeMeeting.setSpeaker(true);
             await this.activeMeeting.produce(stream);
             var _rtcView = new RtcView(stream, this.activeMeeting.meetingUser);
             this.meetingUsers.push(_rtcView);
