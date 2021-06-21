@@ -107,7 +107,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 } catch (error) {
                     if(error instanceof ConusmaException)
                     {
-                        Alert.alert("error",error.message);
+                        //Alert.alert("error",error.message);
                     }
                     console.log(JSON.stringify(error));
                 }
