@@ -41,8 +41,8 @@ export default class broadCast extends React.Component<any, any> {
     user: User;
     navigationListener: any = null;
     activeMeeting: Meeting;
-    myConnection:Connection;
-    speakerEnablePlayer:boolean = false;
+    myConnection: Connection;
+    speakerEnablePlayer: boolean = false;
     async start() {
         try {
             this.setState({ startButtonDisable: true, startButtonText: "Please Wait" });
@@ -77,45 +77,49 @@ export default class broadCast extends React.Component<any, any> {
                 await this.deleteUsers(produermeetingUsers);
             });
         } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+            if (error instanceof ConusmaException) {
+                Alert.alert("error", error.message);
             }
             console.log(JSON.stringify(error));
         }
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
-        try {
-            for (var user of produermeetingUsers) {
-                if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
-                    var conenction = await this.activeMeeting.consume(user);
-                    this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
+        console.log("producer list => "+JSON.stringify(produermeetingUsers));
+        for (var user of produermeetingUsers) {
+            if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
+                try {
+                    if(user.Id != this.activeMeeting.activeUser.Id)
+                    {
+                        var conenction = await this.activeMeeting.consume(user);
+                        this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
+                    }
+                   
+                } catch (error) {
+                    if (error instanceof ConusmaException) {
+                    }
+                    console.log(JSON.stringify(error));
                 }
+
+
             }
-        } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-               // Alert.alert("error",error.message);
-            }
-            console.log(JSON.stringify(error));
         }
-      
     }
     async deleteUsers(producermeetingUsers: MeetingUserModel[]) {
         try {
-            for (var user_it = 0 ; user_it < this.activeMeeting.connections.length;user_it++) {
+            for (var user_it = 0; user_it < this.activeMeeting.connections.length; user_it++) {
                 var deleteUser = this.activeMeeting.connections[user_it].user;
                 if (producermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                    console.log("closeConsumer");
-                    await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
-                    this.setState({});
+                    if (this.activeMeeting.connections[user_it].user.Id != this.activeMeeting.activeUser.Id) {
+                        await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
+                        this.setState({});
 
+                    }
                 }
             }
-        }catch (error) {
+        } catch (error) {
             console.log(JSON.stringify(error));
         }
-      
+
     }
     async SwitchCamera() {
         try {
@@ -123,10 +127,9 @@ export default class broadCast extends React.Component<any, any> {
                 await this.myConnection.switchCamera();
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
-        }catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+        } catch (error) {
+            if (error instanceof ConusmaException) {
+                Alert.alert("error", error.message);
             }
             console.log(JSON.stringify(error));
         }
@@ -145,9 +148,8 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+            if (error instanceof ConusmaException) {
+                Alert.alert("error", error.message);
             }
             console.log(JSON.stringify(error));
         }
@@ -155,7 +157,7 @@ export default class broadCast extends React.Component<any, any> {
     async StartStopMic() {
         try {
             if (this.myConnection != null) {
-                 await this.myConnection.toggleAudio();
+                await this.myConnection.toggleAudio();
                 if (this.myConnection.isAudioActive) {
                     this.setState({ muteMicButtonText: "Mute Mic" });
                 }
@@ -165,9 +167,8 @@ export default class broadCast extends React.Component<any, any> {
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+            if (error instanceof ConusmaException) {
+                Alert.alert("error", error.message);
             }
             console.log(JSON.stringify(error));
         }
@@ -200,11 +201,9 @@ export default class broadCast extends React.Component<any, any> {
             console.error(error);
         }
     }
-    endMeeting()
-    {
+    endMeeting() {
         try {
-            if(this.navigationListener != null)
-            {
+            if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.close(true);
@@ -212,14 +211,12 @@ export default class broadCast extends React.Component<any, any> {
                 }
             }
         } catch (error) {
-            
+
         }
     }
-    endMeetingAll()
-    {
+    endMeetingAll() {
         try {
-            if(this.navigationListener != null)
-            {
+            if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.closeForAll();
@@ -227,7 +224,7 @@ export default class broadCast extends React.Component<any, any> {
                 }
             }
         } catch (error) {
-            
+
         }
     }
     render() {
@@ -238,7 +235,7 @@ export default class broadCast extends React.Component<any, any> {
 
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.activeMeeting != null && this.activeMeeting.connections.map((item:Connection, key) => (
+                        {this.activeMeeting != null && this.activeMeeting.connections.map((item: Connection, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}
@@ -272,24 +269,24 @@ export default class broadCast extends React.Component<any, any> {
                             color="#007bff"
                         />}
 
-                         {this.state.startButtonDisable && <View style={{flexDirection: "row",flexWrap: "wrap"}}>
-                             <View style={{margin:"1%",minWidth:"35%"}}>
-                             <Button
-                            onPress={(e) => this.endMeeting()}
-                            title="Close"
-                            color="red"
-                        />
-                             </View>
-                             <View style={{margin:"1%",minWidth:"50%"}}>
-                        <Button
-                            onPress={(e) => this.endMeetingAll()}
-                            title="Close All User"
-                            color="red"
-                        />
-                             </View>
-                        
-                         </View>
-                       }
+                        {this.state.startButtonDisable && <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                            <View style={{ margin: "1%", minWidth: "35%" }}>
+                                <Button
+                                    onPress={(e) => this.endMeeting()}
+                                    title="Close"
+                                    color="red"
+                                />
+                            </View>
+                            <View style={{ margin: "1%", minWidth: "50%" }}>
+                                <Button
+                                    onPress={(e) => this.endMeetingAll()}
+                                    title="Close All User"
+                                    color="red"
+                                />
+                            </View>
+
+                        </View>
+                        }
 
                     </View>
                     <View style={styles.row}>

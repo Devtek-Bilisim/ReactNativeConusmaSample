@@ -111,11 +111,17 @@ export default class watchBroadcast extends React.Component<any, any> {
 
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
+        console.log("producer list => "+JSON.stringify(produermeetingUsers));
         for (var user of produermeetingUsers) {
             if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
                 try {
-                    var conenction = await this.activeMeeting.consume(user);
-                    this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
+                    if(user.Id != this.activeMeeting.activeUser.Id)
+                    {
+                        console.log("conenct new user");
+                        var conenction = await this.activeMeeting.consume(user);
+                        this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
+                    }
+                   
                 } catch (error) {
                     if (error instanceof ConusmaException) {
                         //Alert.alert("error",error.message);
@@ -180,9 +186,12 @@ export default class watchBroadcast extends React.Component<any, any> {
         for (var user_it = 0 ; user_it < this.activeMeeting.connections.length;user_it++) {
             var deleteUser = this.activeMeeting.connections[user_it].user;
             if (producermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
-                this.setState({});
-
+                if(this.activeMeeting.connections[user_it].user.Id != this.activeMeeting.activeUser.Id)
+                {
+                    await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
+                    this.setState({});
+    
+                }
             }
         }
     }
@@ -259,7 +268,7 @@ export default class watchBroadcast extends React.Component<any, any> {
 
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.activeMeeting != null && this.activeMeeting.connections.map((item, key) => (
+                        {this.activeMeeting!= null && this.activeMeeting.connections.map((item, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}
