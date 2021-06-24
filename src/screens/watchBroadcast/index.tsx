@@ -88,8 +88,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                     });
                     this.activeMeeting.conusmaWorker.meetingWorkerEvent.on('meetingUpdate', async () => {
                         var meeting = await this.activeMeeting.getMeetingInfo();
-                        if(meeting.MeetingStatus == MeetingStatusEnum.end)
-                        {
+                        if (meeting.MeetingStatus == MeetingStatusEnum.end) {
                             Alert.alert("Host closed the meeting");
                             this.endMeeting();
                         }
@@ -111,17 +110,16 @@ export default class watchBroadcast extends React.Component<any, any> {
 
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
-        console.log("producer list => "+JSON.stringify(produermeetingUsers));
+        console.log("producer list => " + JSON.stringify(produermeetingUsers));
         for (var user of produermeetingUsers) {
             if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
                 try {
-                    if(user.Id != this.activeMeeting.activeUser.Id)
-                    {
+                    if (user.Id != this.activeMeeting.activeUser.Id) {
                         console.log("conenct new user");
                         var conenction = await this.activeMeeting.consume(user);
                         this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
                     }
-                   
+
                 } catch (error) {
                     if (error instanceof ConusmaException) {
                         //Alert.alert("error",error.message);
@@ -183,14 +181,13 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async deleteUsers(producermeetingUsers: MeetingUserModel[]) {
 
-        for (var user_it = 0 ; user_it < this.activeMeeting.connections.length;user_it++) {
+        for (var user_it = 0; user_it < this.activeMeeting.connections.length; user_it++) {
             var deleteUser = this.activeMeeting.connections[user_it].user;
             if (producermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                if(this.activeMeeting.connections[user_it].user.Id != this.activeMeeting.activeUser.Id)
-                {
+                if (this.activeMeeting.connections[user_it].user.Id != this.activeMeeting.activeUser.Id) {
                     await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
                     this.setState({});
-    
+
                 }
             }
         }
@@ -219,11 +216,9 @@ export default class watchBroadcast extends React.Component<any, any> {
 
         }
     }
-    endMeeting()
-    {
+    endMeeting() {
         try {
-            if(this.navigationListener != null)
-            {
+            if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.close(true);
@@ -231,7 +226,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 }
             }
         } catch (error) {
-            
+
         }
     }
     render() {
@@ -268,7 +263,7 @@ export default class watchBroadcast extends React.Component<any, any> {
 
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.activeMeeting!= null && this.activeMeeting.connections.map((item, key) => (
+                        {this.activeMeeting != null && this.activeMeeting.connections.map((item, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}
@@ -277,6 +272,13 @@ export default class watchBroadcast extends React.Component<any, any> {
                     </ScrollView>
                 </View>
                 <View style={styles.mainVideoArea}>
+                <View style={{position:"absolute",right:0,zIndex:3}}>
+                            <Button
+                                onPress={(e) => this.SwitchCamera()}
+                                title="Switch Camera"
+                                color="#007bff"
+                            />
+                        </View>
                     <View style={styles.rtcMainVideo}>
                         {this.state.setRemoteStream && (
                             <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
@@ -286,7 +288,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 </View>
                 <View style={styles.streamButton}>
                     <View style={styles.row}>
-                        
+
                         <View style={styles.marginButton}>
                             <Button
                                 onPress={(e) => this.changeSpeaker()}
@@ -294,9 +296,9 @@ export default class watchBroadcast extends React.Component<any, any> {
                                 color="#007bff"
                             />
                         </View>
-                      
 
-                      
+    
+
                         <View style={styles.marginButton}>
                             <Button
                                 onPress={(e) => this.sendLocalStream()}
@@ -320,6 +322,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                                 color="#007bff"
                             />
                         </View>
+
                         <View style={styles.marginButton}>
                             <Button
                                 onPress={(e) => this.endMeeting()}
