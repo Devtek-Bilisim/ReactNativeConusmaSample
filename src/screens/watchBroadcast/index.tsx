@@ -21,6 +21,7 @@ import { MeetingUserModel } from 'react-native-conusma/build/Models/meeting-user
 import { ScrollView } from 'react-native-gesture-handler';
 import RtcView from '../../component/viewStream';
 import { ConusmaException } from 'react-native-conusma/build/Exceptions/conusma-exception';
+import { Connection } from 'react-native-conusma/build/connection';
 export default class watchBroadcast extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
@@ -34,7 +35,8 @@ export default class watchBroadcast extends React.Component<any, any> {
         };
 
     }
-    meetingUsers: RtcView[] = [];
+    myConnection:Connection;
+    connections: Connection[] = [];
     speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
@@ -50,7 +52,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (Name != "WatchBroadcast") {
                     if (this.activeMeeting != null) {
                         this.activeMeeting.close(true);
-                        this.meetingUsers = [];
+                        this.connections = [];
                     }
                     this.navigationListener();
                 }
@@ -98,12 +100,11 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
         for (var user of produermeetingUsers) {
-            if (this.meetingUsers.find(us => us.meetingUser.Id == user.Id) == null) {
+            if (this.connections.find(us => us.user.Id == user.Id) == null) {
                 try {
-                    var stream = await this.activeMeeting.consume(user);
-                    var _rtcView = new RtcView(stream, user);
-                    this.meetingUsers.push(_rtcView);
-                    this.setState({ remoteStream: _rtcView.stream, setRemoteStream: true });
+                    var conenction = await this.activeMeeting.consume(user);
+                    this.connections.push(conenction);
+                    this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
                 } catch (error) {
                     if(error instanceof ConusmaException)
                     {
@@ -116,11 +117,66 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
         }
     }
+    async SwitchCamera() {
+        try {
+            if (this.myConnection != null) {
+                await this.myConnection.switchCamera();
+                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+            }
+        }catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
+        }
+    }
+    async StartStopCamera() {
+        try {
+            if (this.myConnection != null) {
+                var state = await this.myConnection.toggleVideo();
+                if (this.myConnection.isVideoActive) {
+                    this.setState({ startStopButtonText: "Stop CAM" });
+                }
+                else {
+                    this.setState({ startStopButtonText: "Start CAM" });
+
+                }
+                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+            }
+        } catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
+        }
+    }
+    async StartStopMic() {
+        try {
+            if (this.myConnection != null) {
+                 await this.myConnection.toggleAudio();
+                if (this.myConnection.isAudioActive) {
+                    this.setState({ muteMicButtonText: "Mute Mic" });
+                }
+                else {
+                    this.setState({ muteMicButtonText: "Start Mic" });
+                }
+                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+            }
+        } catch (error) {
+            if(error instanceof ConusmaException)
+            {
+                Alert.alert("error",error.message);
+            }
+            console.log(JSON.stringify(error));
+        }
+    }
     async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
-        for (var user_it = 0; user_it < this.meetingUsers.length; user_it++) {
-            var deleteUser = this.meetingUsers[user_it].meetingUser;
+        for (var user_it = 0; user_it < this.connections.length; user_it++) {
+            var deleteUser = this.connections[user_it].user;
             if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                this.meetingUsers.splice(user_it, 1);
+                this.connections.splice(user_it, 1);
                 this.setState({});
                 //this.activeMeeting.closeConsumer(deleteUser);
             }
@@ -143,11 +199,10 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async sendLocalStream() {
         if (this.activeMeeting != null) {
-            if (this.meetingUsers.find(us => us.meetingUser.Id == this.activeMeeting.meetingUser.Id) == null) {
+            if (this.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id) == null) {
                 var localstream = await this.activeMeeting.enableAudioVideo();
-                var _rtcView = new RtcView(localstream, this.activeMeeting.meetingUser);
-                this.meetingUsers.push(_rtcView);
-                this.activeMeeting.produce(localstream);
+                this.myConnection = await this.activeMeeting.produce(localstream);
+                this.connections.push(this.myConnection);
                 this.setState({ sendStreamDisable: true });
             }
 
@@ -194,7 +249,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 </View>
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.meetingUsers.map((item, key) => (
+                        {this.connections.map((item, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}
