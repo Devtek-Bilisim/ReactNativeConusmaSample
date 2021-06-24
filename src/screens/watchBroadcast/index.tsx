@@ -13,7 +13,7 @@ import {
     MediaStream
 } from 'react-native-webrtc';
 import Conusma from 'react-native-conusma';
-import { MeetingModel } from 'react-native-conusma/build/Models/meeting-model';
+import { MeetingModel, MeetingStatusEnum } from 'react-native-conusma/build/Models/meeting-model';
 import { User } from 'react-native-conusma/build/user';
 import { GuestUser } from 'react-native-conusma/build/guest-user';
 import { Meeting } from 'react-native-conusma/build/meeting';
@@ -38,7 +38,6 @@ export default class watchBroadcast extends React.Component<any, any> {
 
     }
     myConnection: Connection;
-    connections: Connection[] = [];
     speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
@@ -54,7 +53,6 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (Name != "WatchBroadcast") {
                     if (this.activeMeeting != null) {
                         this.activeMeeting.close(true);
-                        this.connections = [];
                     }
                     this.navigationListener();
                 }
@@ -88,6 +86,14 @@ export default class watchBroadcast extends React.Component<any, any> {
                         await this.deleteUsers(produermeetingUsers);
 
                     });
+                    this.activeMeeting.conusmaWorker.meetingWorkerEvent.on('meetingUpdate', async () => {
+                        var meeting = await this.activeMeeting.getMeetingInfo();
+                        if(meeting.MeetingStatus == MeetingStatusEnum.end)
+                        {
+                            Alert.alert("Host closed the meeting");
+                            this.endMeeting();
+                        }
+                    });
                     return;
                 }
 
@@ -106,10 +112,9 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
         for (var user of produermeetingUsers) {
-            if (this.connections.find(us => us.user.Id == user.Id) == null) {
+            if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
                 try {
                     var conenction = await this.activeMeeting.consume(user);
-                    this.connections.push(conenction);
                     this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
                 } catch (error) {
                     if (error instanceof ConusmaException) {
@@ -170,13 +175,14 @@ export default class watchBroadcast extends React.Component<any, any> {
             console.log(JSON.stringify(error));
         }
     }
-    async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
-        for (var user_it = 0; user_it < this.connections.length; user_it++) {
-            var deleteUser = this.connections[user_it].user;
-            if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                this.connections.splice(user_it, 1);
+    async deleteUsers(producermeetingUsers: MeetingUserModel[]) {
+
+        for (var user_it = 0 ; user_it < this.activeMeeting.connections.length;user_it++) {
+            var deleteUser = this.activeMeeting.connections[user_it].user;
+            if (producermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
+                await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
                 this.setState({});
-                //this.activeMeeting.closeConsumer(deleteUser);
+
             }
         }
     }
@@ -196,10 +202,9 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async sendLocalStream() {
         if (this.activeMeeting != null) {
-            if (this.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id) == null) {
+            if (this.activeMeeting.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id) == null) {
                 var localstream = await this.activeMeeting.enableAudioVideo();
                 this.myConnection = await this.activeMeeting.produce(localstream);
-                this.connections.push(this.myConnection);
                 this.setState({ sendStreamDisable: true });
             }
 
@@ -213,7 +218,6 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.close(true);
-                    this.connections = [];
                     this.props.navigation.navigate('Home');
                 }
             }
@@ -255,7 +259,7 @@ export default class watchBroadcast extends React.Component<any, any> {
 
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.connections.map((item, key) => (
+                        {this.activeMeeting != null && this.activeMeeting.connections.map((item, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}

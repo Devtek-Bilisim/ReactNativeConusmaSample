@@ -41,7 +41,6 @@ export default class broadCast extends React.Component<any, any> {
     user: User;
     navigationListener: any = null;
     activeMeeting: Meeting;
-    connections: Connection[] = [];
     myConnection:Connection;
     speakerEnablePlayer:boolean = false;
     async start() {
@@ -53,7 +52,6 @@ export default class broadCast extends React.Component<any, any> {
                     if (Name != "Broadcast") {
                         if (this.activeMeeting != null) {
                             this.activeMeeting.close(true);
-                            this.connections = [];
                             this.setState({ startButtonDisable: false, startButtonText: "Start BroadCast" });
                         }
                         this.navigationListener();
@@ -69,7 +67,6 @@ export default class broadCast extends React.Component<any, any> {
             this.activeMeeting.open();
             this.activeMeeting.setSpeaker(true);
             var connection = await this.activeMeeting.produce(stream);
-            this.connections.push(connection);
             this.myConnection = connection;
             this.setState({ startButtonDisable: true, startButtonText: "Live", localStream: stream, setlocalstream: true });
             var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
@@ -90,9 +87,8 @@ export default class broadCast extends React.Component<any, any> {
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
         try {
             for (var user of produermeetingUsers) {
-                if (this.connections.find(us => us.user.Id == user.Id) == null) {
+                if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
                     var conenction = await this.activeMeeting.consume(user);
-                    this.connections.push(conenction);
                     this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
                 }
             }
@@ -105,14 +101,15 @@ export default class broadCast extends React.Component<any, any> {
         }
       
     }
-    async deleteUsers(produermeetingUsers: MeetingUserModel[]) {
+    async deleteUsers(producermeetingUsers: MeetingUserModel[]) {
         try {
-            for (var user_it = 0 ; user_it < this.connections.length;user_it++) {
-                var deleteUser = this.connections[user_it].user;
-                if (produermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
-                    this.connections.splice(user_it, 1);
+            for (var user_it = 0 ; user_it < this.activeMeeting.connections.length;user_it++) {
+                var deleteUser = this.activeMeeting.connections[user_it].user;
+                if (producermeetingUsers.find(us => us.Id == deleteUser.Id) == null) {
+                    console.log("closeConsumer");
+                    await this.activeMeeting.closeConsumer(this.activeMeeting.connections[user_it]);
                     this.setState({});
-                    this.activeMeeting.closeConsumer(this.connections[user_it]);
+
                 }
             }
         }catch (error) {
@@ -211,7 +208,6 @@ export default class broadCast extends React.Component<any, any> {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.close(true);
-                    this.connections = [];
                     this.props.navigation.navigate('Home');
                 }
             }
@@ -227,7 +223,6 @@ export default class broadCast extends React.Component<any, any> {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.closeForAll();
-                    this.connections = [];
                     this.props.navigation.navigate('Home');
                 }
             }
@@ -243,7 +238,7 @@ export default class broadCast extends React.Component<any, any> {
 
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
-                        {this.connections.map((item:Connection, key) => (
+                        {this.activeMeeting != null && this.activeMeeting.connections.map((item:Connection, key) => (
                             <RTCView key={key} objectFit='cover' style={styles.childRtcView} streamURL={item.stream.toURL()} />
                         )
                         )}
