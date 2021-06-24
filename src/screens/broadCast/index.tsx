@@ -203,6 +203,38 @@ export default class broadCast extends React.Component<any, any> {
             console.error(error);
         }
     }
+    endMeeting()
+    {
+        try {
+            if(this.navigationListener != null)
+            {
+                this.navigationListener();
+                if (this.activeMeeting != null) {
+                    this.activeMeeting.close(true);
+                    this.connections = [];
+                    this.props.navigation.navigate('Home');
+                }
+            }
+        } catch (error) {
+            
+        }
+    }
+    endMeetingAll()
+    {
+        try {
+            if(this.navigationListener != null)
+            {
+                this.navigationListener();
+                if (this.activeMeeting != null) {
+                    this.activeMeeting.closeForAll();
+                    this.connections = [];
+                    this.props.navigation.navigate('Home');
+                }
+            }
+        } catch (error) {
+            
+        }
+    }
     render() {
         return (
             <View style={[styles.container, {
@@ -239,12 +271,30 @@ export default class broadCast extends React.Component<any, any> {
 
                 <View style={styles.info}>
                     <View style={{ paddingTop: "3%" }}>
-                        <Button
+                        {!this.state.startButtonDisable && <Button
                             onPress={(e) => this.start()}
-                            disabled={this.state.startButtonDisable}
                             title={this.state.startButtonText}
                             color="#007bff"
+                        />}
+
+                         {this.state.startButtonDisable && <View style={{flexDirection: "row",flexWrap: "wrap"}}>
+                             <View style={{margin:"1%",minWidth:"35%"}}>
+                             <Button
+                            onPress={(e) => this.endMeeting()}
+                            title="Close"
+                            color="red"
                         />
+                             </View>
+                             <View style={{margin:"1%",minWidth:"50%"}}>
+                        <Button
+                            onPress={(e) => this.endMeetingAll()}
+                            title="Close All User"
+                            color="red"
+                        />
+                             </View>
+                        
+                         </View>
+                       }
 
                     </View>
                     <View style={styles.row}>

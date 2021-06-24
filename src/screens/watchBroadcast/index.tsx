@@ -32,10 +32,12 @@ export default class watchBroadcast extends React.Component<any, any> {
             watchButtonDisable: false,
             sendStreamDisable: true,
             sendStreamButtonText: "Send Local Stream",
+            muteMicButtonText: "Mute Mic",
+            startStopButtonText: "Stop CAM",
         };
 
     }
-    myConnection:Connection;
+    myConnection: Connection;
     connections: Connection[] = [];
     speakerEnablePlayer = false;
     conusmaClass: Conusma;
@@ -59,7 +61,6 @@ export default class watchBroadcast extends React.Component<any, any> {
             })
         );
         try {
-            this.setState({ watchButtonText: "WAIT", watchButtonDisable: true });
             if (this.meetingInviteCode != "") {
                 this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
                 this.user = await this.conusmaClass.createGuestUser();
@@ -73,6 +74,8 @@ export default class watchBroadcast extends React.Component<any, any> {
                 }
             }
             if (this.activeMeeting != null) {
+                this.setState({ watchButtonText: "WAIT", watchButtonDisable: true });
+
                 if (await this.activeMeeting.isApproved()) {
                     this.activeMeeting.open();
                     this.activeMeeting.setSpeaker(true);
@@ -85,16 +88,19 @@ export default class watchBroadcast extends React.Component<any, any> {
                         await this.deleteUsers(produermeetingUsers);
 
                     });
+                    return;
                 }
 
             }
+            else {
+                return;
+            }
         } catch (error) {
             if (error instanceof ConusmaException) {
-                Alert.alert("error",error.message);
+                Alert.alert("error", error.message);
             }
-            console.log(JSON.stringify(error));
             this.setState({ watchButtonText: "WATCH BROADCAST", watchButtonDisable: false });
-
+            console.log(JSON.stringify(error));
         }
 
     }
@@ -106,8 +112,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                     this.connections.push(conenction);
                     this.setState({ remoteStream: conenction.stream, setRemoteStream: true });
                 } catch (error) {
-                    if(error instanceof ConusmaException)
-                    {
+                    if (error instanceof ConusmaException) {
                         //Alert.alert("error",error.message);
                     }
                     console.log(JSON.stringify(error));
@@ -123,11 +128,8 @@ export default class watchBroadcast extends React.Component<any, any> {
                 await this.myConnection.switchCamera();
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
-        }catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
-            }
+        } catch (error) {
+
             console.log(JSON.stringify(error));
         }
     }
@@ -145,9 +147,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+            if (error instanceof ConusmaException) {
             }
             console.log(JSON.stringify(error));
         }
@@ -155,7 +155,7 @@ export default class watchBroadcast extends React.Component<any, any> {
     async StartStopMic() {
         try {
             if (this.myConnection != null) {
-                 await this.myConnection.toggleAudio();
+                await this.myConnection.toggleAudio();
                 if (this.myConnection.isAudioActive) {
                     this.setState({ muteMicButtonText: "Mute Mic" });
                 }
@@ -165,9 +165,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+            if (error instanceof ConusmaException) {
             }
             console.log(JSON.stringify(error));
         }
@@ -189,10 +187,9 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.activeMeeting.setSpeaker(this.speakerEnablePlayer);
             }
 
-        }catch (error) {
-            if(error instanceof ConusmaException)
-            {
-                Alert.alert("error",error.message);
+        } catch (error) {
+            if (error instanceof ConusmaException) {
+                Alert.alert("error", error.message);
             }
             console.log(JSON.stringify(error));
         }
@@ -208,45 +205,54 @@ export default class watchBroadcast extends React.Component<any, any> {
 
         }
     }
+    endMeeting()
+    {
+        try {
+            if(this.navigationListener != null)
+            {
+                this.navigationListener();
+                if (this.activeMeeting != null) {
+                    this.activeMeeting.close(true);
+                    this.connections = [];
+                    this.props.navigation.navigate('Home');
+                }
+            }
+        } catch (error) {
+            
+        }
+    }
     render() {
         return (
             <View style={[styles.container, {
                 flexDirection: "column"
             }]}>
-                <View style={styles.info}>
-                    <View style={{}}>
-                        <View>
-                            <TextInput
-                                style={{ borderWidth: 1, color: "#007bff" }}
-                                placeholder="Meeting Invite Code"
-                                placeholderTextColor="black"
-                                keyboardType="default"
-                                onChangeText={(text) => { this.meetingInviteCode = text }}
-                            />
-                        </View>
-                        <View style={{
-                            marginTop: "1%"
-                        }}>
-                            <Button
-                                onPress={(e) => this.watchBroadcast()}
-                                title={this.state.watchButtonText}
-                                disabled={this.state.watchButtonDisable}
-                                color="#007bff"
-                            />
-                        </View>
-                        <View style={{
-                            marginTop: "1%"
-                        }}>
-                            <Button
-                                onPress={(e) => this.sendLocalStream()}
-                                title={this.state.sendStreamButtonText}
-                                disabled={this.state.sendStreamDisable}
-                                color="#007bff"
-                            />
-                        </View>
+                {!this.state.watchButtonDisable &&
+                    <View style={styles.info}>
+                        <View >
+                            <View>
+                                <TextInput
+                                    style={{ borderWidth: 1, color: "#007bff" }}
+                                    placeholder="Meeting Invite Code"
+                                    placeholderTextColor="black"
+                                    keyboardType="default"
+                                    onChangeText={(text) => { this.meetingInviteCode = text }}
+                                />
+                            </View>
+                            <View style={{
+                                marginTop: "1%"
+                            }}>
+                                <Button
+                                    onPress={(e) => this.watchBroadcast()}
+                                    title={this.state.watchButtonText}
+                                    color="#007bff"
+                                />
+                            </View>
 
+
+                        </View>
                     </View>
-                </View>
+                }
+
                 <View style={styles.videoElementArea}>
                     <ScrollView horizontal={true}>
                         {this.connections.map((item, key) => (
@@ -263,18 +269,56 @@ export default class watchBroadcast extends React.Component<any, any> {
                             <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
                         )}
                     </View>
-                    <View style={{
-                        position: "absolute",
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 2
-                    }}>
-                        <Button
-                            onPress={(e) => this.changeSpeaker()}
-                            title="change speaker"
-                            color="#007bff"
-                        />
+
+                </View>
+                <View style={styles.streamButton}>
+                    <View style={styles.row}>
+                        
+                        <View style={styles.marginButton}>
+                            <Button
+                                onPress={(e) => this.changeSpeaker()}
+                                title="change speaker"
+                                color="#007bff"
+                            />
+                        </View>
+                      
+
+                      
+                        <View style={styles.marginButton}>
+                            <Button
+                                onPress={(e) => this.sendLocalStream()}
+                                title={this.state.sendStreamButtonText}
+                                disabled={this.state.sendStreamDisable}
+                                color="#007bff"
+
+                            />
+                        </View>
+                        <View style={styles.marginButton}>
+                            <Button
+                                onPress={(e) => this.StartStopMic()}
+                                title={this.state.muteMicButtonText}
+                                color="#007bff"
+                            />
+                        </View>
+                        <View style={styles.marginButton}>
+                            <Button
+                                onPress={(e) => this.StartStopCamera()}
+                                title={this.state.startStopButtonText}
+                                color="#007bff"
+                            />
+                        </View>
+                        <View style={styles.marginButton}>
+                            <Button
+                                onPress={(e) => this.endMeeting()}
+                                title="End Meeting"
+                                color="red"
+                            />
+                        </View>
+
+
                     </View>
+
+
                 </View>
 
 
@@ -314,8 +358,20 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     info: {
-        flex: 2.2,
+        flex: 1.5,
     },
+    row: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        paddingTop: "1%"
+    },
+    streamButton: {
+        flex: 1.5,
+        backgroundColor: "black"
+    },
+    marginButton: {
+        margin: "1%"
+    }
 
 
 
