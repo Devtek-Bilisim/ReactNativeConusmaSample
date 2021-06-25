@@ -84,7 +84,6 @@ export default class broadCast extends React.Component<any, any> {
         }
     }
     async connectUsers(produermeetingUsers: MeetingUserModel[]) {
-        console.log("producer list => "+JSON.stringify(produermeetingUsers));
         for (var user of produermeetingUsers) {
             if (this.activeMeeting.connections.find(us => us.user.Id == user.Id) == null) {
                 try {
