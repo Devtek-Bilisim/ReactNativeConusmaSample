@@ -37,7 +37,6 @@ export default class watchBroadcast extends React.Component<any, any> {
         };
 
     }
-    myConnection: Connection;
     speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
@@ -129,11 +128,21 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
         }
     }
+    getMyProducerConnection()
+    {
+        try {
+            return this.activeMeeting.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id);
+        } catch (error) {
+            console.log(JSON.stringify(error));
+        }
+        return null;
+    }
     async SwitchCamera() {
         try {
-            if (this.myConnection != null) {
-                await this.myConnection.switchCamera();
-                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+            var myConnection = this.getMyProducerConnection();
+            if (myConnection != null) {
+                await myConnection.switchCamera();
+                this.setState({ localStream: myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
 
@@ -142,16 +151,17 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async StartStopCamera() {
         try {
-            if (this.myConnection != null) {
-                var state = await this.myConnection.toggleVideo();
-                if (this.myConnection.isVideoActive) {
+            var myConnection = this.getMyProducerConnection();
+            if (myConnection != null) {
+                var state = await myConnection.toggleVideo();
+                if (myConnection.isVideoActive) {
                     this.setState({ startStopButtonText: "Stop CAM" });
                 }
                 else {
                     this.setState({ startStopButtonText: "Start CAM" });
 
                 }
-                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+                this.setState({ localStream: myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
             if (error instanceof ConusmaException) {
@@ -161,15 +171,16 @@ export default class watchBroadcast extends React.Component<any, any> {
     }
     async StartStopMic() {
         try {
-            if (this.myConnection != null) {
-                await this.myConnection.toggleAudio();
-                if (this.myConnection.isAudioActive) {
+            var myConnection = this.getMyProducerConnection();
+            if (myConnection != null) {
+                await myConnection.toggleAudio();
+                if (myConnection.isAudioActive) {
                     this.setState({ muteMicButtonText: "Mute Mic" });
                 }
                 else {
                     this.setState({ muteMicButtonText: "Start Mic" });
                 }
-                this.setState({ localStream: this.myConnection.stream, setlocalstream: true });
+                this.setState({ localStream: myConnection.stream, setlocalstream: true });
             }
         } catch (error) {
             if (error instanceof ConusmaException) {
@@ -208,11 +219,27 @@ export default class watchBroadcast extends React.Component<any, any> {
         if (this.activeMeeting != null) {
             if (this.activeMeeting.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id) == null) {
                 var localstream = await this.activeMeeting.enableAudioVideo();
-                this.myConnection = await this.activeMeeting.produce(localstream);
+                await this.activeMeeting.produce(localstream);
                 this.setState({ sendStreamDisable: true });
+                this.setState({ muteMicButtonText: "Mute Mic" });
+                this.setState({ startStopButtonText: "Stop CAM" });
+
             }
 
         }
+    }
+    async stopSendLocalStream() {
+        try {
+            if (this.activeMeeting != null) {
+                if (this.activeMeeting.connections.find(us => us.user.Id == this.activeMeeting.activeUser.Id) != null) {
+                    await this.activeMeeting.closeProducer();
+                    this.setState({ sendStreamDisable: false });
+                }
+            }
+        } catch (error) {
+            console.log(JSON.stringify(error));
+        }
+
     }
     endMeeting() {
         try {
@@ -270,13 +297,13 @@ export default class watchBroadcast extends React.Component<any, any> {
                     </ScrollView>
                 </View>
                 <View style={styles.mainVideoArea}>
-                <View style={{position:"absolute",right:0,zIndex:3}}>
-                            <Button
-                                onPress={(e) => this.SwitchCamera()}
-                                title="Switch Camera"
-                                color="#007bff"
-                            />
-                        </View>
+                    <View style={{ position: "absolute", right: 0, zIndex: 3 }}>
+                        <Button
+                            onPress={(e) => this.SwitchCamera()}
+                            title="Switch Camera"
+                            color="#007bff"
+                        />
+                    </View>
                     <View style={styles.rtcMainVideo}>
                         {this.state.setRemoteStream && (
                             <RTCView style={styles.rtc} streamURL={this.state.remoteStream.toURL()} />
@@ -295,16 +322,26 @@ export default class watchBroadcast extends React.Component<any, any> {
                             />
                         </View>
 
-    
+
 
                         <View style={styles.marginButton}>
-                            <Button
-                                onPress={(e) => this.sendLocalStream()}
-                                title={this.state.sendStreamButtonText}
-                                disabled={this.state.sendStreamDisable}
-                                color="#007bff"
+                            {!this.state.sendStreamDisable &&
 
-                            />
+                                <Button
+                                    onPress={(e) => this.sendLocalStream()}
+                                    title={"Send Local Stream"}
+                                    color="#007bff"
+
+                                />
+                            }
+                            {this.state.sendStreamDisable &&
+                                <Button
+                                    onPress={(e) => this.stopSendLocalStream()}
+                                    title={"Stop Local Stream"}
+                                    color="#007bff"
+
+                                />
+                            }
                         </View>
                         <View style={styles.marginButton}>
                             <Button
