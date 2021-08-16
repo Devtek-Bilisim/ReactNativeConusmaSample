@@ -247,7 +247,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
                     this.activeMeeting.close(true);
-                    this.props.navigation.navigate('Home');
+                    // this.props.navigation.navigate('Home');
                 }
             }
         } catch (error) {
