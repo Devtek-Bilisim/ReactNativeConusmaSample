@@ -47,11 +47,11 @@ export default class watchBroadcast extends React.Component<any, any> {
     navigationListener: any = null;
     async watchBroadcast() {
         this.navigationListener = this.props.navigation.addListener(
-            'state', ((navigationInfo: any) => {
+            'state', (async(navigationInfo: any) => {
                 var Name = navigationInfo.data.state.routes.name;
                 if (Name != "WatchBroadcast") {
                     if (this.activeMeeting != null) {
-                        this.activeMeeting.close(true);
+                        await this.activeMeeting.close(true);
                     }
                     this.navigationListener();
                 }
@@ -241,13 +241,13 @@ export default class watchBroadcast extends React.Component<any, any> {
         }
 
     }
-    endMeeting() {
+    async endMeeting() {
         try {
             if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
-                    this.activeMeeting.close(true);
-                    // this.props.navigation.navigate('Home');
+                    await this.activeMeeting.close(true);
+                     this.props.navigation.navigate('Home');
                 }
             }
         } catch (error) {
