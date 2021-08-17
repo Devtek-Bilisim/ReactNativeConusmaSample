@@ -59,7 +59,7 @@ export default class broadCast extends React.Component<any, any> {
                 })
 
             );
-            this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
+            this.conusmaClass = new Conusma("cdde1505-23e1-439f-8fda-3e42b93365a1", { apiUrl: "https://emscloudapi.com" });
             this.user = await this.conusmaClass.createUser();
             this.meeting = await this.user.getProfileMeeting();
             this.activeMeeting = await this.user.joinMeeting(this.meeting);
@@ -200,12 +200,12 @@ export default class broadCast extends React.Component<any, any> {
             console.error(error);
         }
     }
-    endMeeting() {
+   async endMeeting() {
         try {
             if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
-                    this.activeMeeting.close(true);
+                    await this.activeMeeting.close(true);
                     this.props.navigation.navigate('Home');
                 }
             }

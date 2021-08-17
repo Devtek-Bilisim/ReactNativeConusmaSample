@@ -59,7 +59,7 @@ export default class watchBroadcast extends React.Component<any, any> {
         );
         try {
             if (this.meetingInviteCode != "") {
-                this.conusmaClass = new Conusma("a2bdd634-4cf3-4add-9834-d938f626dd20", { apiUrl: "https://emscloudapi.com:7788" });
+                this.conusmaClass = new Conusma("cdde1505-23e1-439f-8fda-3e42b93365a1", { apiUrl: "https://emscloudapi.com" });
                 this.user = await this.conusmaClass.createGuestUser();
                 this.activeMeeting = await this.user.joinMeetingByInviteCode(this.meetingInviteCode);
 
