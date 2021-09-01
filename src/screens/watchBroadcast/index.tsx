@@ -251,7 +251,7 @@ export default class watchBroadcast extends React.Component<any, any> {
                 }
             }
         } catch (error) {
-
+            Alert.alert("error", "cannot close properly");
         }
     }
     render() {

@@ -51,7 +51,7 @@ export default class broadCast extends React.Component<any, any> {
                     var Name = navigationInfo.data.state.routes.name;
                     if (Name != "Broadcast") {
                         if (this.activeMeeting != null) {
-                            this.activeMeeting.close(true);
+                            await this.activeMeeting.close(true);
                             this.setState({ startButtonDisable: false, startButtonText: "Start BroadCast" });
                         }
                         this.navigationListener();
@@ -210,7 +210,7 @@ export default class broadCast extends React.Component<any, any> {
                 }
             }
         } catch (error) {
-
+            Alert.alert("error", "cannot close properly");
         }
     }
     endMeetingAll() {
@@ -218,12 +218,12 @@ export default class broadCast extends React.Component<any, any> {
             if (this.navigationListener != null) {
                 this.navigationListener();
                 if (this.activeMeeting != null) {
-                    this.activeMeeting.closeForAll();
+                    await this.activeMeeting.closeForAll();
                     this.props.navigation.navigate('Home');
                 }
             }
         } catch (error) {
-
+            Alert.alert("error", "close for all error");
         }
     }
     render() {
