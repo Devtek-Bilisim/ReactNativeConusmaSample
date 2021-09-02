@@ -213,7 +213,7 @@ export default class broadCast extends React.Component<any, any> {
             Alert.alert("error", "cannot close properly");
         }
     }
-    endMeetingAll() {
+    async endMeetingAll() {
         try {
             if (this.navigationListener != null) {
                 this.navigationListener();
