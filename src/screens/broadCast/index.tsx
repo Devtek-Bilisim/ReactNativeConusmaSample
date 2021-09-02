@@ -42,7 +42,6 @@ export default class broadCast extends React.Component<any, any> {
     navigationListener: any = null;
     activeMeeting: Meeting;
     myConnection: Connection;
-    speakerEnablePlayer: boolean = false;
     async start() {
         try {
             this.setState({ startButtonDisable: true, startButtonText: "Please Wait" });
@@ -192,12 +191,17 @@ export default class broadCast extends React.Component<any, any> {
     changeSpeaker() {
         try {
             if (this.activeMeeting != null && this.state.setRemoteStream) {
-                this.speakerEnablePlayer = !this.speakerEnablePlayer;
-                this.activeMeeting.setSpeaker(this.speakerEnablePlayer);
+                this.activeMeeting.setSpeaker(!this.activeMeeting.speakerState);
             }
 
         } catch (error) {
             console.error(error);
+        }
+    }
+    changeSpeakerBluetooth()
+    {
+        if (this.activeMeeting != null && this.state.setRemoteStream) {
+            this.activeMeeting.setSpeaker(false,true);
         }
     }
    async endMeeting() {
@@ -255,6 +259,13 @@ export default class broadCast extends React.Component<any, any> {
                         <Button
                             onPress={(e) => this.changeSpeaker()}
                             title="change speaker"
+                            color="#007bff"
+                        />
+                    </View>
+                    <View style={{ position: "absolute", left:0, zIndex: 3 }}>
+                        <Button
+                            onPress={(e) => this.changeSpeakerBluetooth()}
+                            title="connect Bluetooth"
                             color="#007bff"
                         />
                     </View>

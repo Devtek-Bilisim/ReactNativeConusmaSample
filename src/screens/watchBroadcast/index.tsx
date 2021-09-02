@@ -37,7 +37,6 @@ export default class watchBroadcast extends React.Component<any, any> {
         };
 
     }
-    speakerEnablePlayer = false;
     conusmaClass: Conusma;
     activeMeeting: Meeting;
     user: GuestUser;
@@ -201,11 +200,16 @@ export default class watchBroadcast extends React.Component<any, any> {
             }
         }
     }
+    changeSpeakerBluetooth()
+    {
+        if (this.activeMeeting != null && this.state.setRemoteStream) {
+            this.activeMeeting.setSpeaker(false,true);
+        }
+    }
     changeSpeaker() {
         try {
             if (this.activeMeeting != null && this.state.setRemoteStream) {
-                this.speakerEnablePlayer = !this.speakerEnablePlayer;
-                this.activeMeeting.setSpeaker(this.speakerEnablePlayer);
+                this.activeMeeting.setSpeaker(!this.activeMeeting.speakerState);
             }
 
         } catch (error) {
@@ -301,6 +305,13 @@ export default class watchBroadcast extends React.Component<any, any> {
                         <Button
                             onPress={(e) => this.SwitchCamera()}
                             title="Switch Camera"
+                            color="#007bff"
+                        />
+                    </View>
+                    <View style={{ position: "absolute", left:0, zIndex: 3 }}>
+                        <Button
+                            onPress={(e) => this.changeSpeakerBluetooth()}
+                            title="connect Bluetooth"
                             color="#007bff"
                         />
                     </View>
