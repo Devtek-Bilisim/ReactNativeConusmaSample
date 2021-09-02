@@ -47,7 +47,7 @@ export default class broadCast extends React.Component<any, any> {
         try {
             this.setState({ startButtonDisable: true, startButtonText: "Please Wait" });
             this.navigationListener = this.props.navigation.addListener(
-                'state', ((navigationInfo: any) => {
+                'state', (async (navigationInfo: any) => {
                     var Name = navigationInfo.data.state.routes.name;
                     if (Name != "Broadcast") {
                         if (this.activeMeeting != null) {
