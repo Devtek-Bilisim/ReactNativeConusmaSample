@@ -67,6 +67,7 @@ export default class broadCast extends React.Component<any, any> {
             this.activeMeeting.setSpeaker(true);
             var connection = await this.activeMeeting.produce(stream);
             this.myConnection = connection;
+            await this.activeMeeting.connectMeeting();
             this.setState({ startButtonDisable: true, startButtonText: "Live", localStream: stream, setlocalstream: true });
             var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
             await this.connectUsers(produermeetingUsers);

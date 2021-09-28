@@ -75,6 +75,8 @@ export default class watchBroadcast extends React.Component<any, any> {
                 if (await this.activeMeeting.isApproved()) {
                     this.activeMeeting.open();
                     this.activeMeeting.setSpeaker(true);
+                    await this.activeMeeting.connectMeeting();
+
                     var produermeetingUsers: MeetingUserModel[] = await this.activeMeeting.getProducerUsers();
                     await this.connectUsers(produermeetingUsers);
                     this.setState({ watchButtonText: "LIVE", watchButtonDisable: true, sendStreamDisable: false });
