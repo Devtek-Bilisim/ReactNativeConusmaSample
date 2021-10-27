@@ -19,12 +19,12 @@ export default class AppNavigationContainer extends React.Component {
            <Stack.Screen
             name="Broadcast"
             component={BroadCastScreen}
-            options={{ title: 'Broadcast'}}
+            options={{ title: 'Meeting'}}
           />
            <Stack.Screen
             name="WatchBroadcast"
             component={watchBroadcast}
-            options={{ title: 'Watch Broadcast'}}
+            options={{ title: 'Watch Meeting'}}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -38,14 +38,14 @@ export default class home extends React.Component<any,any> {
             <View style={{}}>
             <Button
               onPress={this.broadCastclick}
-              title="Start Broadcast"
+              title="Start Meeting"
               color="#007bff"
             />
             </View>
             <View style={{paddingTop:"10%"}}>
             <Button
               onPress={this.watchClick}
-              title="Watch Broadcast"
+              title="Join Meeting"
               color="#6c757d"
             />
             </View>
